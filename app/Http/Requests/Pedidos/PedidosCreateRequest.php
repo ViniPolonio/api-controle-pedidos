@@ -16,7 +16,7 @@ class PedidosCreateRequest extends FormRequest
         return [
             'codigo_cupom'           => 'nullable|string|exists:cupons,codigo',
             'itens'                  => 'required|array',
-            'itens.*.produto_id'     => 'required|integer|exists:produtos,id',
+            'itens.*.product_id'     => 'required|integer|exists:produtos,id',
             'itens.*.quantidade'     => 'required|integer|min:1',
             'itens.*.preco_unitario' => 'required|numeric|min:0',
             'subtotal'               => 'nullable|numeric|min:0',

@@ -21,6 +21,15 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        // Inserir usuário padrão
+        \DB::table('users')->insert([
+            'name' => 'Gerente',
+            'email' => 'montink@gmail.com',
+            'password' => bcrypt('montink@@123'),
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
+
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
             $table->string('token');
