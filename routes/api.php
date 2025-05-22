@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 Route::post('/users', [UserController::class, 'store']);
 Route::post('/login', [AuthController::class, 'login']);
 
-Route::middleware(['auth:sanctum'])->prefix('montink/v1')->group(function () {
+Route::prefix('montink/v1')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']); 
 
 

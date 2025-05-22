@@ -25,47 +25,15 @@ class PedidosController extends Controller
     {
         try {
             $data = $request->validated();
-            $user = auth()->user();
-            $data['created_by'] = $user->id;
+            
+            // $user = auth()->user();
+            // $data['created_by'] = $user->id;
+            $data['created_by'] = 1;
 
             $cupom = null;
 
-            if (!empty($data['codigo_cupom'])) {
-                $itens = $data['itens'];
-                $subtotal = $this->calcularSubtotal($itens);
-                $frete = $data['frete'] ?? 0;
-
-                $cupom = Cupons::where('codigo', $data['codigo_cupom'])->first();
-
-                if (!$cupom) {
-                    return ResponseHelper::error('Cupom inválido.', 422);
-                }
-                if ($cupom->validade && now()->greaterThan($cupom->validade)) {
-                    return ResponseHelper::error('Cupom expirado.', 422);
-                }
-                if ($cupom->quantidade_usada >= $cupom->quantidade) {
-                    return ResponseHelper::error('Limite de uso do cupom atingido.', 422);
-                }
-                if ($cupom->valor_minimo && $subtotal < $cupom->valor_minimo) {
-                    return ResponseHelper::error('Subtotal insuficiente para usar o cupom.', 422);
-                }
-
-                $descontoAplicado = $cupom->percentual
-                    ? $subtotal * ($cupom->percentual / 100)
-                    : $cupom->desconto;
-
-                $total = max(0, $subtotal + $frete - $descontoAplicado);
-
-                $data['subtotal'] = $subtotal;
-                $data['frete'] = $frete;
-                $data['total'] = $total;
-            } else {
-                $data['subtotal'] = $data['subtotal'] ?? 0;
-                $data['frete'] = $data['frete'] ?? 0;
-                $data['total'] = $data['total'] ?? 0;
-            }
-
             $data['itens'] = json_encode($data['itens']);
+
             $pedido = Pedidos::create($data);
 
             if ($cupom) {
@@ -73,28 +41,13 @@ class PedidosController extends Controller
             }
 
             return ResponseHelper::success($pedido, 'Pedido criado com sucesso.', 201);
+
         } catch (\Exception $e) {
-            return ResponseHelper::error('Erro interno ao processar o pedido: ' . $e->getMessage(), 500);
+            \Log::error('Erro ao criar pedido', ['exception' => $e]);
+            return ResponseHelper::error('Erro interno ao processar o pedido.', 500);
         }
     }
 
-    public function calcularSubtotal(array $itens): float
-    {
-        if (empty($itens) || !is_array($itens)) {
-            return 0;
-        }
-
-        $subtotal = 0;
-
-        foreach ($itens as $item) {
-            $quantidade = $item['quantidade'] ?? 0;
-            $precoUnitario = $item['preco_unitario'] ?? 0;
-
-            $subtotal += $quantidade * $precoUnitario;
-        }
-
-        return $subtotal;
-    }
 
     public function show($id)
     {

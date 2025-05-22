@@ -18,6 +18,11 @@ class ProdutosCreateRequest extends FormRequest
             'descricao' => 'nullable|string',
             'preco'     => 'required|numeric|min:0',
             'status'    => 'required|boolean',
+
+            // Campos para a tabela estoque
+            'cor'       => 'required|string|max:100',
+            'tamanho'   => 'required|string|max:10',
+            'quantidade'=> 'required|integer|min:0',
         ];
     }
 }

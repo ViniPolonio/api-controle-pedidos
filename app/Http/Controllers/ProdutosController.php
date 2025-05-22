@@ -4,28 +4,50 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Produtos\ProdutosCreateRequest;
 use App\Http\Requests\Produtos\ProdutosUpdateRequest;
+use App\Models\Estoque;
 use App\Models\Produtos;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseHelper;
+use Illuminate\Support\Facades\DB;
+
 
 class ProdutosController extends Controller
 {
     public function index()
     {
         try {
-            $produtos = Produtos::all();
+            // Carrega os produtos com o relacionamento 'estoque'
+            $produtos = Produtos::with('estoque')->get();
+
             return ResponseHelper::success($produtos, 'Lista de produtos retornada com sucesso.');
         } catch (\Exception $e) {
             return ResponseHelper::error('Erro ao listar produtos: ' . $e->getMessage(), 500);
         }
     }
 
-    public function store(ProdutosCreateRequest $request)
+
+        public function store(ProdutosCreateRequest $request)
     {
         try {
-            $produto = Produtos::create($request->validated());
+            DB::beginTransaction();
+
+            $produtoData = $request->except(['cor', 'tamanho', 'quantidade']);
+            $produto = Produtos::create($produtoData);
+
+            $estoqueData = [
+                'produto_id' => $produto->id,
+                'cor' => $request->cor,
+                'tamanho' => $request->tamanho,
+                'quantidade' => $request->quantidade,
+            ];
+            Estoque::create($estoqueData);
+
+            DB::commit();
+
             return ResponseHelper::success($produto, 'Produto cadastrado com sucesso.', 201);
         } catch (\Exception $e) {
+            DB::rollBack();
+
             return ResponseHelper::error('Erro ao cadastrar produto: ' . $e->getMessage(), 500);
         }
     }
