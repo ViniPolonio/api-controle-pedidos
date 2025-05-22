@@ -30,13 +30,21 @@ class CuponsController extends Controller
         }
     }
 
-    public function show($id)
+    public function show(string $cupom)
     {
         try {
-            $cupon = Cupons::find($id);
+            $cupon = Cupons::where('codigo', '=', $cupom)->first();
 
             if (!$cupon) {
                 return ResponseHelper::error('Cupom não encontrado.', 404);
+            }
+
+            if ($cupon->validade && now()->greaterThan($cupon->validade)) {
+                return ResponseHelper::error('Cupom expirado.', 422);
+            }
+
+            if ($cupon->quantidade_usada >= $cupon->quantidade) {
+                return ResponseHelper::error('Limite de uso do cupom atingido.', 422);
             }
 
             return ResponseHelper::success($cupon, 'Cupom encontrado com sucesso.');
@@ -44,6 +52,7 @@ class CuponsController extends Controller
             return ResponseHelper::error('Erro ao buscar cupom: ' . $e->getMessage(), 500);
         }
     }
+
 
     public function update(CuponsUpdateRequest $request, $id)
     {

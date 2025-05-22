@@ -14,4 +14,9 @@ class Produtos extends Model
         'preco',
         'status',
     ];
+
+    public function estoque()
+    {
+        return $this->hasOne(Estoque::class, 'produto_id');
+    }
 }
